@@ -196,6 +196,8 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
+The coordinator and worker Dockerfiles expect the repository root as their build context so they can copy `backend/pom.xml` and the sibling Maven modules. When creating either service directly on Render, leave **Root Directory** blank, set the Dockerfile path to `backend/coordinator/Dockerfile` or `backend/worker/Dockerfile`, and use `.` (the repository root) as the Docker build context.
+
 ---
 
 ## 🧪 Verification & Failover Demonstration

@@ -19,8 +19,8 @@ services:
 
   coordinator:
     build:
-      context: ./backend
-      dockerfile: coordinator/Dockerfile
+      context: .
+      dockerfile: backend/coordinator/Dockerfile
     container_name: scheduler-coordinator
     environment:
       DB_URL: "jdbc:mysql://mysql:3306/${DB_NAME:-distributed_scheduler}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
@@ -38,8 +38,8 @@ services:
 
   worker-1:
     build:
-      context: ./backend
-      dockerfile: worker/Dockerfile
+      context: .
+      dockerfile: backend/worker/Dockerfile
     container_name: scheduler-worker-1
     environment:
       COORDINATOR_HOST: coordinator
@@ -52,8 +52,8 @@ services:
 
   worker-2:
     build:
-      context: ./backend
-      dockerfile: worker/Dockerfile
+      context: .
+      dockerfile: backend/worker/Dockerfile
     container_name: scheduler-worker-2
     environment:
       COORDINATOR_HOST: coordinator
