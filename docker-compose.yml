@@ -5,7 +5,7 @@ services:
     image: mysql:8.0.36
     container_name: scheduler-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-Rahul@766}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       MYSQL_DATABASE: ${DB_NAME:-distributed_scheduler}
     ports:
       - "3306:3306"
@@ -19,13 +19,14 @@ services:
 
   coordinator:
     build:
-      context: .
+      context: ./backend
       dockerfile: coordinator/Dockerfile
     container_name: scheduler-coordinator
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/distributed_scheduler?useSSL=false&allowPublicKeyRetrieval=true
-      DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD:-Rahul@766}
+      DB_URL: "jdbc:mysql://mysql:3306/${DB_NAME:-distributed_scheduler}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       PORT: 8080
       GRPC_PORT: 9090
     ports:
@@ -37,37 +38,29 @@ services:
 
   worker-1:
     build:
-      context: .
+      context: ./backend
       dockerfile: worker/Dockerfile
     container_name: scheduler-worker-1
     environment:
       COORDINATOR_HOST: coordinator
-      COORDINATOR_PORT: 9090
+      COORDINATOR_GRPC_PORT: 9090
       WORKER_ID: worker-node-1
-      WORKER_HOST: worker-1
-      WORKER_GRPC_PORT: 9091
-      PORT: 8081
-    ports:
-      - "8081:8081"
-      - "9091:9091"
+      WORKER_HOSTNAME: worker-1
+      WORKER_PORT: 9091
     depends_on:
       - coordinator
 
   worker-2:
     build:
-      context: .
+      context: ./backend
       dockerfile: worker/Dockerfile
     container_name: scheduler-worker-2
     environment:
       COORDINATOR_HOST: coordinator
-      COORDINATOR_PORT: 9090
+      COORDINATOR_GRPC_PORT: 9090
       WORKER_ID: worker-node-2
-      WORKER_HOST: worker-2
-      WORKER_GRPC_PORT: 9092
-      PORT: 8082
-    ports:
-      - "8082:8082"
-      - "9092:9092"
+      WORKER_HOSTNAME: worker-2
+      WORKER_PORT: 9092
     depends_on:
       - coordinator
 

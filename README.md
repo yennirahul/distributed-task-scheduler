@@ -124,15 +124,18 @@ erDiagram
 
 | Variable | Description | Default Value |
 | :--- | :--- | :--- |
-| `DB_URL` | MySQL Connection JDBC URL | `jdbc:mysql://localhost:3306/distributed_scheduler` |
-| `DB_USERNAME` | MySQL Username | `root` |
-| `DB_PASSWORD` | MySQL Password | `Rahul@766` |
-| `PORT` | Coordinator REST / Web Port | `8080` |
-| `GRPC_PORT` | Coordinator gRPC Server Port | `9090` |
-| `COORDINATOR_HOST` | Worker target Coordinator Host | `localhost` |
-| `WORKER_ID` | Unique Worker Identifier | `worker-node-1` |
-| `WORKER_GRPC_PORT` | Worker gRPC Task Server Port | `9091` |
-| `HEARTBEAT_TIMEOUT` | Stale Heartbeat Timeout (seconds) | `15` |
+| `DB_URL` | MySQL JDBC URL | Local development URL |
+| `DB_USERNAME` | MySQL username | `root` |
+| `DB_PASSWORD` | MySQL password | Required; supply outside source control |
+| `PORT` | Coordinator REST port (Render supplies this) | `8080` |
+| `GRPC_PORT` | Coordinator gRPC server port | `9090` |
+| `COORDINATOR_HOST` | Coordinator hostname used by a worker | `localhost` |
+| `COORDINATOR_GRPC_PORT` | Coordinator gRPC port used by a worker | `9090` |
+| `WORKER_ID` | Unique worker identifier | `worker-node-1` |
+| `WORKER_HOSTNAME` | Worker hostname registered with coordinator | `localhost` |
+| `WORKER_PORT` | Worker port registered with coordinator | `9091` |
+| `JWT_SECRET` | Base64-encoded JWT signing key (at least 32 bytes) | Required |
+| `SCHEDULER_HEARTBEAT_TIMEOUT_SECONDS` | Stale heartbeat threshold | `15` |
 
 ---
 
@@ -149,31 +152,32 @@ Ensure MySQL 8.0 is running and create the target database:
 CREATE DATABASE IF NOT EXISTS distributed_scheduler;
 ```
 
-### 2. Build the Project
-Build all submodules (`scheduler-proto`, `scheduler-coordinator`, `scheduler-worker`) using Maven:
-```bash
-mvn clean package -DskipTests
+### 2. Build the Maven Modules
+The Maven aggregator and all three modules are under `backend`. Run these commands from the repository root in PowerShell:
+```powershell
+mvn -f .\backend\pom.xml -pl coordinator -am clean package
+mvn -f .\backend\pom.xml -pl worker -am clean package
 ```
 
 ### 3. Run Coordinator Application
-Start the Coordinator node (REST API on port 8080, gRPC Server on port 9090):
-```bash
-java -jar scheduler-coordinator/target/scheduler-coordinator-1.0.0-SNAPSHOT.jar
+Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` in the process environment first. Then run:
+```powershell
+java -jar .\backend\coordinator\target\coordinator-1.0.0-SNAPSHOT.jar
 ```
 
 ### 4. Run Worker Nodes
-Start Worker Node 1 (gRPC port 9091):
-```bash
-java -jar scheduler-worker/target/scheduler-worker-1.0.0-SNAPSHOT.jar --worker.id=worker-node-1 --worker.grpc.port=9091 --server.port=8081
+The worker uses a gRPC client to register with the coordinator and send heartbeats:
+```powershell
+$env:COORDINATOR_HOST = "localhost"
+$env:COORDINATOR_GRPC_PORT = "9090"
+$env:WORKER_ID = "worker-node-1"
+java -jar .\backend\worker\target\worker-1.0.0-SNAPSHOT.jar
 ```
 
-Start Worker Node 2 (gRPC port 9092):
-```bash
-java -jar scheduler-worker/target/scheduler-worker-1.0.0-SNAPSHOT.jar --worker.id=worker-node-2 --worker.grpc.port=9092 --server.port=8082
-```
+> **Dispatch limitation:** the coordinator calls the worker's `DispatchTask` gRPC RPC, but the worker module currently has no gRPC server implementation for that RPC. Registration and heartbeat support do not by themselves make task dispatch operational.
 
 ### 5. Access Dashboard
-Open your browser and navigate to:
+When the frontend is running locally, open:
 ```
 http://localhost:8080/
 ```
@@ -185,10 +189,11 @@ Default Credentials:
 
 ## 🐳 Docker Compose Deployment
 
-To launch the complete cluster (MySQL 8.0, Coordinator, Worker 1, Worker 2) using Docker Compose:
+Copy `.env.example` to `.env`, set unique local values for `DB_PASSWORD` and `JWT_SECRET`, then start the services:
 
-```bash
-docker-compose up --build
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
 ```
 
 ---
