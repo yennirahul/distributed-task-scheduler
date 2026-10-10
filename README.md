@@ -128,6 +128,7 @@ erDiagram
 | `DB_USERNAME` | MySQL username | `root` |
 | `DB_PASSWORD` | MySQL password | Required; supply outside source control |
 | `PORT` | Coordinator REST port (Render supplies this) | `8080` |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the coordinator | Vercel production URL and local development URLs |
 | `GRPC_PORT` | Coordinator gRPC server port | `9090` |
 | `COORDINATOR_HOST` | Coordinator hostname used by a worker | `localhost` |
 | `COORDINATOR_GRPC_PORT` | Coordinator gRPC port used by a worker | `9090` |

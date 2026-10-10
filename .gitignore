@@ -1,21 +1,23 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Java / Spring Boot
 target/
 *.class
-*.jar
-*.war
 
-# Node
+# React / Node.js
 node_modules/
 dist/
-.vite/
 
-# IDEs
-.idea/
+# IDE files
 .vscode/
-*.iml
+.idea/
 
-# OS
+# Logs
+*.log
+
+# Operating system files
 .DS_Store
 Thumbs.db
-
-# Environment
-.env
