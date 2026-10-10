@@ -18,7 +18,7 @@ class CorsConfigTest {
     @Test
     void allowsRegistrationPreflightFromVercelFrontend() throws Exception {
         CorsConfigurationSource source = new CorsConfig().corsConfigurationSource(
-                new String[]{FRONTEND_ORIGIN, "http://localhost:3000"});
+                new String[]{FRONTEND_ORIGIN, "http://localhost:3000", "http://localhost:3001"});
         MockHttpServletRequest request = new MockHttpServletRequest("OPTIONS", "/api/v1/auth/register");
         request.addHeader("Origin", FRONTEND_ORIGIN);
         request.addHeader("Access-Control-Request-Method", "POST");
@@ -32,6 +32,18 @@ class CorsConfigTest {
         assertEquals(200, response.getStatus());
         assertEquals(FRONTEND_ORIGIN, response.getHeader("Access-Control-Allow-Origin"));
         assertTrue(response.getHeader("Access-Control-Allow-Methods").contains("POST"));
+
+        MockHttpServletRequest localRequest = new MockHttpServletRequest("OPTIONS", "/api/v1/auth/register");
+        localRequest.addHeader("Origin", "http://localhost:3001");
+        localRequest.addHeader("Access-Control-Request-Method", "POST");
+        localRequest.addHeader("Access-Control-Request-Headers", "content-type");
+        MockHttpServletResponse localResponse = new MockHttpServletResponse();
+        processed = new DefaultCorsProcessor().processRequest(
+                source.getCorsConfiguration(localRequest), localRequest, localResponse);
+
+        assertTrue(processed);
+        assertEquals(200, localResponse.getStatus());
+        assertEquals("http://localhost:3001", localResponse.getHeader("Access-Control-Allow-Origin"));
     }
 
     @Test
