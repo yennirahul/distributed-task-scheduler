@@ -197,7 +197,7 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
-The coordinator and worker Dockerfiles expect the repository root as their build context so they can copy `backend/pom.xml` and the sibling Maven modules. When creating either service directly on Render, leave **Root Directory** blank, set the Dockerfile path to `backend/coordinator/Dockerfile` or `backend/worker/Dockerfile`, and use `.` (the repository root) as the Docker build context.
+The coordinator and worker Dockerfiles expect the repository root as their build context so they can copy `backend/pom.xml` and the sibling Maven modules. The repository-root `render.yaml` defines the coordinator web service and uses `backend/coordinator/Dockerfile` with the root build context. Create a Render Blueprint from this file, then provide the required `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` values in Render; the database host must be reachable from Render and must not be `localhost`. To create services manually instead, leave **Root Directory** blank, set the Dockerfile path to `backend/coordinator/Dockerfile` or `backend/worker/Dockerfile`, and use `.` (the repository root) as the Docker build context.
 
 ---
 
