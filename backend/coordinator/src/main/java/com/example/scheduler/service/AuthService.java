@@ -8,7 +8,6 @@ import com.example.scheduler.entity.User;
 import com.example.scheduler.repository.UserRepository;
 import com.example.scheduler.security.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +19,23 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
     private final AuditLogService auditLogService;
 
     public LoginResponse login(LoginRequest request, String ipAddress) {
         // Allow login with either username or email
         User user = userRepository.findByUsername(request.getUsernameOrEmail())
                 .or(() -> userRepository.findByEmail(request.getUsernameOrEmail()))
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> {
+                    // #region agent log
+                    try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"hypothesisId\":\"H4\",\"location\":\"AuthService.java:login\",\"message\":\"user not found\",\"data\":{\"identifierPresent\":" + (request.getUsernameOrEmail() != null && !request.getUsernameOrEmail().isBlank()) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignored) {}
+                    // #endregion
+                    return new RuntimeException("Invalid credentials");
+                });
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
+        // #region agent log
+        try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"hypothesisId\":\"H4\",\"location\":\"AuthService.java:login\",\"message\":\"password check\",\"data\":{\"matches\":" + matches + ",\"role\":\"" + user.getRole() + "\",\"enabled\":" + user.isEnabled() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignored) {}
+        // #endregion
         if (!matches) {
             throw new RuntimeException("Invalid credentials");
         }

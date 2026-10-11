@@ -29,6 +29,9 @@ public class DueJobProcessor {
     public void processDueJobs() {
         LocalDateTime now = LocalDateTime.now();
         List<ScheduledJob> dueJobs = jobRepository.findDueJobs(now);
+        // #region agent log
+        try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"hypothesisId\":\"H3\",\"location\":\"DueJobProcessor.java:processDueJobs\",\"message\":\"due jobs poll\",\"data\":{\"dueCount\":" + dueJobs.size() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignored) {}
+        // #endregion
 
         for (ScheduledJob job : dueJobs) {
             log.info("Processing due job: {} ({})", job.getName(), job.getId());
@@ -42,8 +45,11 @@ public class DueJobProcessor {
 
             execution = executionRepository.save(execution);
             dispatchService.recordEvent(execution, "CREATED", "Execution record created");
+            // #region agent log
+            try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H3\",\"location\":\"DueJobProcessor.java:processDueJobs\",\"message\":\"due job execution created\",\"data\":{\"jobId\":\"" + job.getId() + "\",\"executionId\":\"" + execution.getId() + "\",\"taskType\":\"" + job.getTaskType() + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignore) {}
+            // #endregion
 
-            boolean dispatched = dispatchService.dispatchJobExecution(execution, job);
+            dispatchService.dispatchJobExecution(execution, job);
 
             job.setLastRunAt(now);
             if (job.getScheduleType() == ScheduleType.FIXED_RATE && job.getFixedRateMs() != null) {

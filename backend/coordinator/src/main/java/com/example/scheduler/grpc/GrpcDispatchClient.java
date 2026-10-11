@@ -33,9 +33,15 @@ public class GrpcDispatchClient {
 
             TaskDispatchResponse response = stub.dispatchTask(param);
             log.info("gRPC Task Dispatch response for {}: accepted={}", execution.getId(), response.getAccepted());
+            // #region agent log
+            try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"hypothesisId\":\"H5\",\"location\":\"GrpcDispatchClient.java:dispatchTask\",\"message\":\"dispatch rpc returned\",\"data\":{\"hostname\":\"" + hostname + "\",\"port\":" + port + ",\"accepted\":" + response.getAccepted() + ",\"status\":\"" + response.getStatus() + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignored) {}
+            // #endregion
             return response.getAccepted();
         } catch (Exception e) {
             log.error("Failed gRPC dispatch to {}:{}", hostname, port, e);
+            // #region agent log
+            try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"hypothesisId\":\"H1\",\"location\":\"GrpcDispatchClient.java:dispatchTask\",\"message\":\"dispatch rpc failed\",\"data\":{\"hostname\":\"" + hostname + "\",\"port\":" + port + ",\"errorType\":\"" + e.getClass().getSimpleName() + "\",\"error\":\"" + String.valueOf(e.getMessage()).replace("\"", "'") + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignored) {}
+            // #endregion
             return false;
         } finally {
             channel.shutdown();

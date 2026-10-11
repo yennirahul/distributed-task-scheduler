@@ -2,7 +2,6 @@ package com.example.scheduler.service;
 
 import com.example.scheduler.dto.WorkerResponse;
 import com.example.scheduler.entity.WorkerNode;
-import com.example.scheduler.enums.WorkerStatus;
 import com.example.scheduler.exception.ResourceNotFoundException;
 import com.example.scheduler.repository.WorkerNodeRepository;
 import lombok.RequiredArgsConstructor;

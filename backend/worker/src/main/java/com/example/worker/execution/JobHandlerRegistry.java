@@ -15,7 +15,7 @@ public class JobHandlerRegistry {
 
     public JobHandlerRegistry(List<JobHandler> handlers) {
         this.handlerMap = handlers.stream()
-                .collect(Collectors.toMap(JobHandler::getTaskType, Function.identity()));
+                .collect(Collectors.toMap(handler -> handler.getTaskType(), Function.identity()));
     }
 
     public Optional<JobHandler> getHandler(String taskType) {

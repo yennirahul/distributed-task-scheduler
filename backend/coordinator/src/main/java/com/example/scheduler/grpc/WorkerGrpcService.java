@@ -4,10 +4,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import com.example.scheduler.grpc.HeartbeatResponse;
-import com.example.scheduler.grpc.HeartbeatRequest;
-import com.example.scheduler.grpc.RegisterWorkerResponse;
-import com.example.scheduler.grpc.RegisterWorkerRequest;
+
 
 @Service
 @RequiredArgsConstructor

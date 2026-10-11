@@ -22,9 +22,15 @@ export const Login = () => {
 
     setLoading(true);
     try {
-      await login(email, password);
+      const result = await login(email, password);
+      // #region agent log
+      fetch('http://127.0.0.1:7482/ingest/3ef88146-3d16-4a69-8345-55a8319eeccb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1fc9a9'},body:JSON.stringify({sessionId:'1fc9a9',runId:'pre-fix',hypothesisId:'H4',location:'Login.jsx:handleSubmit',message:'login success',data:{hasToken:!!result?.token,role:result?.role},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       navigate('/');
     } catch (err) {
+      // #region agent log
+      fetch('http://127.0.0.1:7482/ingest/3ef88146-3d16-4a69-8345-55a8319eeccb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1fc9a9'},body:JSON.stringify({sessionId:'1fc9a9',runId:'pre-fix',hypothesisId:'H4',location:'Login.jsx:handleSubmit',message:'login failed',data:{status:err.response?.status,apiMessage:err.response?.data?.message,code:err.code,errMessage:err.message},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
     } finally {
       setLoading(false);

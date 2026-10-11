@@ -19,6 +19,9 @@ public class HeartbeatService implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("Registering worker node with coordinator...");
+        // #region agent log
+        try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"hypothesisId\":\"H1\",\"location\":\"HeartbeatService.java:run\",\"message\":\"worker started; checking dispatch server presence\",\"data\":{\"hasDispatchGrpcServer\":false},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignored) {}
+        // #endregion
         coordinatorClient.registerWorker();
     }
 

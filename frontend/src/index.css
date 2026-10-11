@@ -131,6 +131,7 @@ pre,
   letter-spacing: -0.02em;
   background: linear-gradient(to right, #ffffff, #cbd5e1);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -485,7 +486,7 @@ pre,
 
 .login-card {
   width: 100%;
-  max-w: 420px;
+  max-width: 420px;
   background: rgba(17, 24, 39, 0.75);
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1);

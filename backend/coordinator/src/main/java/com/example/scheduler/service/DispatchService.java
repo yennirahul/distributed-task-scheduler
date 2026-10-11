@@ -47,6 +47,9 @@ public class DispatchService {
 
         if (eligibleWorker.isEmpty()) {
             log.warn("No available worker node for execution {}", execution.getId());
+            // #region agent log
+            try { java.nio.file.Files.writeString(java.nio.file.Path.of("C:\\Users\\YENNI RAHUL\\OneDrive\\Desktop\\distributed-task-scheduler\\debug-1fc9a9.log"), "{\"sessionId\":\"1fc9a9\",\"hypothesisId\":\"H2\",\"location\":\"DispatchService.java:dispatchJobExecution\",\"message\":\"no eligible worker\",\"data\":{\"onlineCount\":" + availableWorkers.size() + ",\"taskType\":\"" + job.getTaskType() + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignored) {}
+            // #endregion
             recordEvent(execution, "DISPATCH_FAILED", "No available worker with capacity for task type: " + job.getTaskType());
             return false;
         }
