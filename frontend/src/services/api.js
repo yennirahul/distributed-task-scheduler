@@ -5,7 +5,7 @@ const api = axios.create({
     import.meta.env.VITE_API_BASE_URL ||
     (import.meta.env.DEV
       ? '/api/v1'
-      : 'https://distributed-task-scheduler-615i.onrender.com/api/v1'),
+      : 'https://distributed-task-scheduler-suhi.onrender.com/api/v1'),
 });
 
 api.interceptors.request.use((config) => {
