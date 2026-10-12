@@ -3,17 +3,20 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-COPY pom.xml .
-COPY src ./src
+COPY backend/pom.xml backend/pom.xml
+COPY backend/proto/pom.xml backend/proto/pom.xml
+COPY backend/coordinator/pom.xml backend/coordinator/pom.xml
+COPY backend/worker/pom.xml backend/worker/pom.xml
+COPY backend/proto/src/ backend/proto/src/
+COPY backend/worker/src/ backend/worker/src/
 
-RUN mvn clean package -DskipTests
+WORKDIR /app/backend
+RUN mvn -pl worker -am clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/backend/worker/target/*.jar app.jar
 
-EXPOSE 8080
-
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

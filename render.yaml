@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     dockerContext: .
-    dockerfilePath: ./backend/coordinator/Dockerfile
+    dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /actuator/health
     autoDeploy: true
     envVars:

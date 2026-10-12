@@ -20,7 +20,7 @@ services:
   coordinator:
     build:
       context: .
-      dockerfile: backend/coordinator/Dockerfile
+      dockerfile: backend/Dockerfile
     container_name: scheduler-coordinator
     environment:
       DB_URL: "jdbc:mysql://mysql:3306/${DB_NAME:-distributed_scheduler}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
