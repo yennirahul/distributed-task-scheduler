@@ -128,7 +128,6 @@ erDiagram
 | `DB_USERNAME` | MySQL username | `root` |
 | `DB_PASSWORD` | MySQL password | Required; supply outside source control |
 | `PORT` | Coordinator REST port (Render supplies this) | `8080` |
-| `APP_CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the coordinator | Vercel production URL and local development URLs |
 | `GRPC_PORT` | Coordinator gRPC server port | `9090` |
 | `COORDINATOR_HOST` | Coordinator hostname used by a worker | `localhost` |
 | `COORDINATOR_GRPC_PORT` | Coordinator gRPC port used by a worker | `9090` |
@@ -214,9 +213,8 @@ The coordinator and worker Dockerfiles expect the repository root as their build
 - `DB_URL`: the complete JDBC URL for a MySQL database reachable from Render, for example `jdbc:mysql://<database-host>:3306/distributed_scheduler?useSSL=true&serverTimezone=UTC`. Replace the host with the real provider hostname; `localhost` is not valid for a hosted database.
 - `DB_USERNAME` and `DB_PASSWORD`: the database credentials, entered as Render environment variables and not committed to the repository.
 - `JWT_SECRET`: a newly generated Base64 string representing at least 32 cryptographically random bytes. Generate one locally with the PowerShell command above and enter it directly in Render; do not reuse a checked-in or example secret.
-- `APP_CORS_ALLOWED_ORIGINS`: the allowed frontend origin. The Blueprint defaults to the deployed Vercel origin; add any additional frontend origins as a comma-separated list if needed.
 
-Render provides `PORT` automatically; Spring binds the HTTP server to `${PORT}` with `8080` as the local default. The Blueprint keeps the database credentials and JWT key as unsynchronized inputs (`sync: false`), so they must be supplied in Render before the service can start. `GRPC_PORT` defaults to `9090`; it is not the HTTP health-check port. The worker does not use `JWT_SECRET`. To create services manually instead, leave **Root Directory** blank, set the coordinator Dockerfile path to `Dockerfile`, and use `.` (the repository root) as the Docker build context. Setting the Render root directory to `backend/worker` or another subdirectory makes the root-relative `COPY backend/...` instructions fail because those files are outside the build context.
+Render provides `PORT` automatically; Spring binds the HTTP server to `${PORT}` with `8080` as the local default. The Blueprint keeps the database credentials and JWT key as unsynchronized inputs (`sync: false`), so they must be supplied in Render before the service can start. CORS permits only `https://distributed-task-scheduler-orpin.vercel.app`. `GRPC_PORT` defaults to `9090`; it is not the HTTP health-check port. The worker does not use `JWT_SECRET`. To create services manually instead, leave **Root Directory** blank, set the coordinator Dockerfile path to `Dockerfile`, and use `.` (the repository root) as the Docker build context. Setting the Render root directory to `backend/worker` or another subdirectory makes the root-relative `COPY backend/...` instructions fail because those files are outside the build context.
 
 After saving the Render environment variables, trigger a deploy and check the service logs for a successful application startup. Verify the service health at `https://<your-render-service>.onrender.com/actuator/health`; do not consider deployment healthy until it returns `{"status":"UP"}`.
 
