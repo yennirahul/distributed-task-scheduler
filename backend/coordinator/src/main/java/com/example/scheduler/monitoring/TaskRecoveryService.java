@@ -30,11 +30,11 @@ public class TaskRecoveryService {
         for (WorkerNode worker : offlineWorkers) {
             List<JobExecution> activeExecutions = executionRepository.findByWorkerIdAndStatusIn(
                     worker.getWorkerId(),
-                    List.of(ExecutionStatus.DISPATCHED, ExecutionStatus.RUNNING)
-            );
+                    List.of(ExecutionStatus.DISPATCHED, ExecutionStatus.RUNNING));
 
             for (JobExecution execution : activeExecutions) {
-                log.info("Recovering orphaned task execution {} from offline worker {}", execution.getId(), worker.getWorkerId());
+                log.info("Recovering orphaned task execution {} from offline worker {}", execution.getId(),
+                        worker.getWorkerId());
                 ScheduledJob job = execution.getJob();
 
                 if (execution.getAttemptNumber() < job.getMaxRetries()) {
@@ -43,7 +43,8 @@ public class TaskRecoveryService {
                     execution.setErrorMessage("Worker " + worker.getWorkerId() + " went offline. Re-dispatching...");
                     executionRepository.save(execution);
 
-                    dispatchService.recordEvent(execution, "TASK_RECOVERED", "Re-dispatching attempt #" + execution.getAttemptNumber());
+                    dispatchService.recordEvent(execution, "TASK_RECOVERED",
+                            "Re-dispatching attempt #" + execution.getAttemptNumber());
                     dispatchService.dispatchJobExecution(execution, job);
                 } else {
                     execution.setStatus(ExecutionStatus.FAILED);

@@ -135,7 +135,7 @@ erDiagram
 | `WORKER_ID` | Unique worker identifier | `worker-node-1` |
 | `WORKER_HOSTNAME` | Worker hostname registered with coordinator | `localhost` |
 | `WORKER_PORT` | Worker port registered with coordinator | `9091` |
-| `JWT_SECRET` | Base64-encoded JWT signing key (at least 32 bytes) | Required |
+| `JWT_SECRET` | Base64-encoded random JWT signing key (at least 32 decoded bytes; coordinator only) | Required; never commit it |
 | `SCHEDULER_HEARTBEAT_TIMEOUT_SECONDS` | Stale heartbeat threshold | `15` |
 
 ---
@@ -143,7 +143,7 @@ erDiagram
 ## 🚀 Setup & Execution Guide
 
 ### Prerequisites
-1. **Java 21 JDK** installed and configured.
+1. **Java 17 or newer JDK** installed and configured (the Maven compiler target is Java 17).
 2. **MySQL Server 8.0** running locally or via Docker.
 3. **Maven 3.8+**
 
@@ -161,10 +161,22 @@ mvn -f .\backend\pom.xml -pl worker -am clean package
 ```
 
 ### 3. Run Coordinator Application
-Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` in the process environment first. Then run:
+Spring Boot imports the ignored repository-root `.env` file when present. Create it from the template and edit it with your local MySQL password and a generated JWT key:
+
+```powershell
+Copy-Item .\.env.example .\.env
+$bytes = New-Object byte[] 32
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+```
+
+Copy the generated Base64 value into `JWT_SECRET` in `.env`, then set `DB_PASSWORD` there. The value must decode to at least 32 bytes; JJWT enforces the HMAC key-strength requirement, and the coordinator validates it at startup. Keep `.env` private and do not commit it. From the repository root, run:
+
 ```powershell
 java -jar .\backend\coordinator\target\coordinator-1.0.0-SNAPSHOT.jar
 ```
+
+You can instead set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` as process environment variables; environment variables take precedence over `.env`.
 
 ### 4. Run Worker Nodes
 The worker uses a gRPC client to register with the coordinator and send heartbeats:
@@ -197,7 +209,16 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
-The coordinator and worker Dockerfiles expect the repository root as their build context so they can copy `backend/pom.xml` and the sibling Maven modules. The repository-root `render.yaml` defines the coordinator web service and uses `backend/coordinator/Dockerfile` with the root build context. Create a Render Blueprint from this file, then provide the required `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` values in Render; the database host must be reachable from Render and must not be `localhost`. To create services manually instead, leave **Root Directory** blank, set the Dockerfile path to `backend/coordinator/Dockerfile` or `backend/worker/Dockerfile`, and use `.` (the repository root) as the Docker build context.
+The coordinator and worker Dockerfiles expect the repository root as their build context so they can copy `backend/pom.xml` and the sibling Maven modules. The repository-root `render.yaml` defines the coordinator web service and uses `backend/coordinator/Dockerfile` with the root build context. Create a Render Blueprint from this file. In the coordinator service's **Environment** settings, provide:
+
+- `DB_URL`: the complete JDBC URL for a MySQL database reachable from Render, for example `jdbc:mysql://<database-host>:3306/distributed_scheduler?useSSL=true&serverTimezone=UTC`. Replace the host with the real provider hostname; `localhost` is not valid for a hosted database.
+- `DB_USERNAME` and `DB_PASSWORD`: the database credentials, entered as Render environment variables and not committed to the repository.
+- `JWT_SECRET`: a newly generated Base64 string representing at least 32 cryptographically random bytes. Generate one locally with the PowerShell command above and enter it directly in Render; do not reuse a checked-in or example secret.
+- `CORS_ALLOWED_ORIGINS`: the allowed frontend origin. The Blueprint defaults to the deployed Vercel origin; add any additional frontend origins as a comma-separated list if needed.
+
+Render provides `PORT` automatically; Spring binds the HTTP server to `${PORT}` with `8080` as the local default. The Blueprint keeps the database credentials and JWT key as unsynchronized inputs (`sync: false`), so they must be supplied in Render before the service can start. `GRPC_PORT` defaults to `9090`; it is not the HTTP health-check port. The worker does not use `JWT_SECRET`. To create services manually instead, leave **Root Directory** blank, set the coordinator Dockerfile path to `backend/coordinator/Dockerfile`, and use `.` (the repository root) as the Docker build context.
+
+After saving the Render environment variables, trigger a deploy and check the service logs for a successful application startup. Verify the service health at `https://<your-render-service>.onrender.com/actuator/health`; do not consider deployment healthy until it returns `{"status":"UP"}`.
 
 ---
 
