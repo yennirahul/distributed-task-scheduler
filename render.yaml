@@ -16,5 +16,5 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: CORS_ALLOWED_ORIGINS
+      - key: APP_CORS_ALLOWED_ORIGINS
         value: https://distributed-task-scheduler-orpin.vercel.app
